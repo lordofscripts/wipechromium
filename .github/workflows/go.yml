@@ -24,7 +24,6 @@ jobs:
     - name: Install dependencies
       run: |
         go get .
-        go get github.com/loxhill/go-vee
 
     - name: Build
       run: go build -v ./...
