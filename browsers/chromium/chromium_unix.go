@@ -1,4 +1,4 @@
-//go:build linux
+//go:build aix darwin dragonfly freebsd js,wasm linux nacl netbsd openbsd solaris
 /* -----------------------------------------------------------------
  *					L o r d  O f   S c r i p t s (tm)
  *				  Copyright (C)2024 Dídimo Grimaldo T.
