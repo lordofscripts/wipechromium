@@ -34,7 +34,7 @@ type ILogger interface {
 
 type ConditionalLogger struct {
 	enabled bool
-	prefix	string
+	prefix  string
 }
 
 /* ----------------------------------------------------------------
@@ -62,7 +62,7 @@ func (l *ConditionalLogger) InheritAs(prefix string) *ConditionalLogger {
 // Formatted logging
 func (l *ConditionalLogger) Printf(template string, v ...any) {
 	if l.enabled {
-		log.Printf(l.prefix + " " +template, v...)
+		log.Printf(l.prefix+" "+template, v...)
 	}
 }
 
@@ -73,7 +73,3 @@ func (l *ConditionalLogger) Print(v ...any) {
 		log.Print(v...)
 	}
 }
-
-
-
-

@@ -14,6 +14,9 @@ import (
  *							G l o b a l s
  *-----------------------------------------------------------------*/
 const (
+	CO1 = "odlamirG omidiD 4202)C("
+	CO2 = "stpircS fO droL 4202)C("
+
 	// Change these values accordingly
 	NAME string = "WipeChromium"
 	DESC string = "Wipes out all (or selected) Chromium junk"
@@ -25,8 +28,7 @@ const (
 )
 
 // NOTE: Change these values accordingly
-var Version string = version{NAME, "0.1", statusRC, 1}.String()
-var Copyright string = "Copyright (C)2024 Didimo Grimaldo"
+var Version string = version{NAME, "0.2", statusRC, 1}.String()
 
 /* ----------------------------------------------------------------
  *							T y p e s
@@ -64,3 +66,39 @@ func (v version) String() string {
  *							F u n c t i o n s
  *-----------------------------------------------------------------*/
 
+// Funny LordOfScripts logo
+func Logo() string {
+	const (
+		whiteStar rune = '\u269d' // ⚝
+		unisex    rune = '\u26a5' // ⚥
+		hotSpring rune = '\u2668' // ♨
+		leftConv  rune = '\u269e' // ⚞
+		rightConv rune = '\u269f' // ⚟
+		eye       rune = '\u25d5' // ◕
+		mouth     rune = '\u035c' // ͜	‿ \u203f
+		skull     rune = '\u2620' // ☠
+	)
+	return fmt.Sprintf("%c%c%c %c%c", leftConv, eye, mouth, eye, rightConv)
+	//fmt.Sprintf("(%c%c %c)", eye, mouth, eye)
+}
+
+// Hey! My time costs money too!
+func BuyMeCoffee(recipient string) {
+	const (
+		coffee rune = '\u2615' // ☕
+	)
+	fmt.Printf("\t%c Buy me a Coffee? https://www.buymeacoffee/%s\n", coffee, recipient)
+}
+
+func Copyright(name, owner string, withLogo bool) {
+	fmt.Printf("\t\u2720 %s %s (C)2024 %s \u269d\n", name, Version, Reverse(owner))
+	fmt.Println("\t\t\t\t", Logo())
+}
+
+func Reverse(s string) string {
+	runes := []rune(s)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	return string(runes)
+}

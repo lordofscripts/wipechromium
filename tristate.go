@@ -6,7 +6,6 @@
  *-----------------------------------------------------------------*/
 package wipechromium
 
-
 /* ----------------------------------------------------------------
  *							G l o b a l s
  *-----------------------------------------------------------------*/
@@ -18,10 +17,10 @@ const (
 )
 
 var (
-	TriStateDefaultLabels = []string{"Undecided", "No", "Yes"}
-	TriStateDingbatLabels = []string{"\u2753", "\u2718", "\u2714"} // ❓ ✘ ✔
-	TriStateSquarishLabels  = []string{"\u2b1a", "\u2b1c", "\u2b1b"} // ⬚ ⬜ ⬛
-	TriStateSquareLabels  = []string{"\u2610", "\u2612", "\u2611"} // ☐ ☒ ☑
+	TriStateDefaultLabels  = []string{"Undecided", "No", "Yes"}
+	TriStateDingbatLabels  = []string{"\u2753", "\u2718", "\u2714"} // ❓ ✘ ✔
+	TriStateSquarishLabels = []string{"\u2b1a", "\u2b1c", "\u2b1b"} // ⬚ ⬜ ⬛
+	TriStateSquareLabels   = []string{"\u2610", "\u2612", "\u2611"} // ☐ ☒ ☑
 )
 
 /* ----------------------------------------------------------------
@@ -57,7 +56,7 @@ func (t TriState) StringWith(v []string) string {
 		if len(v) == 3 {
 			return "!!!Invalid"
 		} else {
-			return v[3]	// user-defined invalid label
+			return v[3] // user-defined invalid label
 		}
 	}
 }

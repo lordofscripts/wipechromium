@@ -1,4 +1,5 @@
 //go:build darwin
+
 /* -----------------------------------------------------------------
  *					L o r d  O f   S c r i p t s (tm)
  *				  Copyright (C)2024 Dídimo Grimaldo T.
@@ -18,9 +19,9 @@ import (
  *-----------------------------------------------------------------*/
 
 const (
-	cCHROMIUM string = "Chromium"
-	cCHROME_CACHES string ="Library/Caches/Google"
-	cCHROME_PROFILES string ="Library/Application Support"
+	cCHROMIUM        string = "Chromium"
+	cCHROME_CACHES   string = "Library/Caches/Google"
+	cCHROME_PROFILES string = "Library/Application Support"
 )
 
 /* ----------------------------------------------------------------
@@ -46,4 +47,3 @@ func GetDataDir() string {
 	ChromiumProfilesDir := filepath.Join(cmn.AtHome(cCHROME_PROFILES), cCHROMIUM)
 	return ChromiumProfilesDir
 }
-

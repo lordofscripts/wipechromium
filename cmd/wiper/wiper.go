@@ -9,9 +9,9 @@
 package main
 
 import (
-	"os"
-	"fmt"
 	"flag"
+	"fmt"
+	"os"
 	"strings"
 
 	cmn "lordofscripts/wipechromium"
@@ -25,12 +25,12 @@ import (
  *-----------------------------------------------------------------*/
 const (
 	FLAG_HELP_BROWSER string = "Browser name"
-	FLAG_HELP_SCAN string = "Scan for browsers"
-	FLAG_HELP_NAME string = "Profile name"
-	FLAG_HELP_ME string = "This help"
-	FLAG_HELP_CACHE string = "Erase cache only"
+	FLAG_HELP_SCAN    string = "Scan for browsers"
+	FLAG_HELP_NAME    string = "Profile name"
+	FLAG_HELP_ME      string = "This help"
+	FLAG_HELP_CACHE   string = "Erase cache only"
 	FLAG_HELP_PROFILE string = "Erase profile junk only"
-	FLAG_HELP_LOG string = "Enable log output"
+	FLAG_HELP_LOG     string = "Enable log output"
 )
 
 var (
@@ -41,7 +41,6 @@ var (
 /* ----------------------------------------------------------------
  *				M o d u l e   I n i t i a l i z a t i o n
  *-----------------------------------------------------------------*/
-
 
 /* ----------------------------------------------------------------
  *						I n t e r f a c e s
@@ -59,7 +58,6 @@ type BrowserWipe struct {
  *							C o n s t r u c t o r s
  *-----------------------------------------------------------------*/
 
-
 /* ----------------------------------------------------------------
  *							M e t h o d s
  *-----------------------------------------------------------------*/
@@ -69,7 +67,7 @@ type BrowserWipe struct {
 func (b *BrowserWipe) Scan() {
 	// Here always the list of browser cleaners we support. Each one
 	// has a package under "lordofscripts/wipechromium/browsers"
-	supportedBrowsers := []browsers.Browser {
+	supportedBrowsers := []browsers.Browser{
 		browsers.ChromiumBrowser,
 	}
 
@@ -103,31 +101,13 @@ func (b *BrowserWipe) Run(cacheOnly, profileOnly bool) (int, error) {
  *							F u n c t i o n s
  *-----------------------------------------------------------------*/
 
-func logo() string {
-	const (
-		whiteStar rune = '\u269d' // ⚝
-		unisex rune = '\u26a5' // ⚥
-		hotSpring rune = '\u2668' // ♨
-		leftConv rune = '\u269e' // ⚞
-		rightConv rune = '\u269f' // ⚟
-		eye rune = '\u25d5' // ◕
-		mouth rune = '\u035c' // ͜	‿ \u203f
-		skull rune = '\u2620' // ☠
-	)
-	return fmt.Sprintf("%c%c%c %c%c", leftConv, eye, mouth,  eye, rightConv)
-	//fmt.Sprintf("(%c%c %c)", eye, mouth, eye)
-}
-
-func buymecoffee() {
-	const (
-		coffee rune = '\u2615' // ☕
-	)
-	fmt.Printf("\t%c Buy me a Coffee? https://www.buymeacoffee/lostinwriting\n", coffee)
-}
-
 func help() {
-	fmt.Printf("\t\u26a5 wipeChromium %s (C)2024 Didimo Grimaldo \u269d\n", cmn.Version)
-	fmt.Println("\t\t\t\t", logo())
+	const (
+		RECIPIENT = "lostinwriting"
+		PACKAGE   = "WipeChromium"
+	)
+
+	cmn.Copyright(PACKAGE, cmn.CO1, true)
 	fmt.Println("Usage:")
 	fmt.Println("\tScan the system for browser data presence.")
 	fmt.Println("\t\twipechromium -scan")
@@ -151,7 +131,7 @@ func help() {
 	fmt.Printf(HELP_TEMPLATE, "-s", "-scan", "", FLAG_HELP_SCAN)
 	fmt.Printf(HELP_TEMPLATE, "", "-log", "", FLAG_HELP_LOG)
 
-	buymecoffee()
+	cmn.BuyMeCoffee(RECIPIENT)
 }
 
 // Show a message and die with exit code
@@ -163,7 +143,7 @@ func die(exitCode int, msgformat string, v ...any) {
 
 	fmt.Printf("Bad Thing Happened: exit code %d\n", exitCode)
 	fmt.Println("Message:")
-	fmt.Printf("\t" + msgformat, v...)
+	fmt.Printf("\t"+msgformat, v...)
 
 	os.Exit(exitCode)
 }
@@ -200,7 +180,6 @@ func main() {
 		os.Exit(0)
 	}
 
-
 	// (b.2) Target Profile name (-name)
 	if !scanOnly && len(profile) == 0 {
 		help()
@@ -216,11 +195,11 @@ func main() {
 	// (b.4) Browser capabilities
 	var browser browsers.Browser
 	switch strings.ToLower(browserName) {
-		case "chromium":	// default
-			browser = browsers.ChromiumBrowser
-			break
-		default:
-			die(2, "Not a supported browser %q", browserName)
+	case "chromium": // default
+		browser = browsers.ChromiumBrowser
+		break
+	default:
+		die(2, "Not a supported browser %q", browserName)
 	}
 
 	// (b.5) Conditional Logging

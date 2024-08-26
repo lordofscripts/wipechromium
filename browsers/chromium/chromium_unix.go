@@ -1,4 +1,5 @@
 //go:build linux || aix || darwin || dragonfly || freebsd || netbsd || openbsd || solaris
+
 /* -----------------------------------------------------------------
  *					L o r d  O f   S c r i p t s (tm)
  *				  Copyright (C)2024 Dídimo Grimaldo T.
@@ -18,9 +19,9 @@ import (
  *-----------------------------------------------------------------*/
 
 const (
-	cCHROMIUM string = "chromium"
-	cCHROME_CACHES string =".cache"
-	cCHROME_PROFILES string =".config"
+	cCHROMIUM        string = "chromium"
+	cCHROME_CACHES   string = ".cache"
+	cCHROME_PROFILES string = ".config"
 )
 
 /* ----------------------------------------------------------------
@@ -46,4 +47,3 @@ func GetDataDir() string {
 	ChromiumProfilesDir := filepath.Join(cmn.AtHome(cCHROME_PROFILES), cCHROMIUM)
 	return ChromiumProfilesDir
 }
-

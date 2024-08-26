@@ -16,7 +16,6 @@ import (
 
 const (
 	ChromiumBrowser Browser = iota
-
 )
 
 /* ----------------------------------------------------------------
@@ -68,13 +67,11 @@ type IBrowsers interface {
 func (b Browser) String() string {
 	id := ""
 	switch b {
-		case ChromiumBrowser:
-			id = "Chromium"
-			break
-		default:
-			log.Print("Unknown browser")
+	case ChromiumBrowser:
+		id = "Chromium"
+		break
+	default:
+		log.Print("Unknown browser")
 	}
 	return id
 }
-
- 

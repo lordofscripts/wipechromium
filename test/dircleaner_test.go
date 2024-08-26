@@ -7,8 +7,8 @@ package test
 
 import (
 	"fmt"
-	"testing"
 	"path/filepath"
+	"testing"
 
 	"github.com/blang/vfs"
 	"github.com/blang/vfs/memfs"
@@ -128,14 +128,13 @@ var (
  *						I n t e r f a c e s
  *-----------------------------------------------------------------*/
 
-
 /* ----------------------------------------------------------------
  *							T y p e s
  *-----------------------------------------------------------------*/
 
 type FSO struct {
 	isDir bool
-	path string
+	path  string
 }
 
 /* ----------------------------------------------------------------
@@ -200,6 +199,11 @@ func Test_DirCleanerData(t *testing.T) {
  *-----------------------------------------------------------------*/
 
 func createDummyTree(fs vfs.Filesystem, objects []FSO, root string) (int64, error) {
+	writeDummyFile := func(path, content string) {
+		if err := vfs.WriteFile(fs, path, []byte(content), 0644); err != nil {
+			fmt.Println("VFS.F.ERR", err)
+		}
+	}
 	// (a) create the MemFS root
 	if err := vfs.MkdirAll(fs, root, 0700); err != nil {
 		return 0, err
@@ -211,8 +215,13 @@ func createDummyTree(fs vfs.Filesystem, objects []FSO, root string) (int64, erro
 		apath := filepath.Join(root, fso.path)
 		if fso.isDir {
 			err = fs.Mkdir(apath, 0700)
+			dfilename := filepath.Join(apath, "dummy.txt")
+			writeDummyFile(dfilename, "Anything")
+			if IsFile(fs, dfilename) != wipechromium.Yes {
+				fmt.Println("VFS.C.ERR where is ", dfilename)
+			}
 		} else {
-			_, err = vfs.Create(fs, apath)
+			writeDummyFile(apath, "Test File")
 		}
 
 		if err != nil {
@@ -225,7 +234,7 @@ func createDummyTree(fs vfs.Filesystem, objects []FSO, root string) (int64, erro
 		return int64(len(entries)), nil
 	} else {
 		fmt.Println("VFS ", err)
-		return int64(len(entries)),err
+		return int64(len(entries)), err
 	}
 }
 
@@ -248,9 +257,21 @@ func showVFS(fs vfs.Filesystem, root string) {
 			if fso.IsDir() {
 				label = "Dir"
 			}
-			fmt.Printf("\t%5s %s\n", label, fso.Name())
+			fmt.Printf("\t%5s %6d %s\n", label, fso.Size(), fso.Name())
 		}
 	} else {
 		fmt.Println("VFS CANNOT SHOW", err.Error())
 	}
+}
+
+func IsFile(fs vfs.Filesystem, path string) wipechromium.TriState {
+	if finfo, err := fs.Stat(path); err == nil {
+		if !finfo.IsDir() {
+			return wipechromium.Yes
+		} else {
+			return wipechromium.No
+		}
+	}
+	// not exist or not a directory
+	return wipechromium.Undecided
 }

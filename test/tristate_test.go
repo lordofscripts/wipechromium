@@ -6,8 +6,8 @@
 package test
 
 import (
-	"testing"
 	cmn "lordofscripts/wipechromium"
+	"testing"
 )
 
 /* ----------------------------------------------------------------
@@ -15,11 +15,11 @@ import (
  *-----------------------------------------------------------------*/
 
 var (
-	triStateDefault cmn.TriState
+	triStateDefault  cmn.TriState
 	triStatePositive cmn.TriState = cmn.Yes
 	triStateNegative cmn.TriState = cmn.No
-	triStateUnset cmn.TriState = cmn.Undecided
-	triStateInvalid cmn.TriState = cmn.TriState(5)
+	triStateUnset    cmn.TriState = cmn.Undecided
+	triStateInvalid  cmn.TriState = cmn.TriState(5)
 )
 
 /* ----------------------------------------------------------------
@@ -29,14 +29,14 @@ var (
 // Check values with default labels
 func Test_Values(t *testing.T) {
 	const (
-		FLOATING = "Undecided"
-		HIGH = "Yes"
-		LOW = "No"
+		FLOATING        = "Undecided"
+		HIGH            = "Yes"
+		LOW             = "No"
 		INVALID_DEFAULT = "!!!Invalid"
 	)
 
 	if triStateDefault.String() != FLOATING {
-		t.Errorf("Default value is not %q != %q", triStateDefault.String(),  FLOATING)
+		t.Errorf("Default value is not %q != %q", triStateDefault.String(), FLOATING)
 	}
 
 	if triStateUnset.String() != FLOATING {
@@ -55,11 +55,11 @@ func Test_Values(t *testing.T) {
 // Check values with custom labels as in electronic circuits
 func Test_ValuesCustomLabel(t *testing.T) {
 	const (
-		FLOATING = "Z"
-		HIGH = "H"
-		LOW = "L"
+		FLOATING        = "Z"
+		HIGH            = "H"
+		LOW             = "L"
 		INVALID_DEFAULT = "!!!Invalid"
-		INVALID_CUSTOM = "???"
+		INVALID_CUSTOM  = "???"
 	)
 
 	// A. Using the default String()
@@ -98,11 +98,11 @@ func Test_ValuesCustomLabel(t *testing.T) {
 // Check StringWith() with valid parameter
 func Test_StringWith(t *testing.T) {
 	const (
-		FLOATING = "Z"
-		HIGH = "H"
-		LOW = "L"
+		FLOATING        = "Z"
+		HIGH            = "H"
+		LOW             = "L"
 		INVALID_DEFAULT = "!!!Invalid"
-		INVALID_CUSTOM = "???"
+		INVALID_CUSTOM  = "???"
 	)
 
 	labelsGood1 := []string{FLOATING, LOW, HIGH}
@@ -121,18 +121,18 @@ func Test_StringWith(t *testing.T) {
 // Check StringWith() with invalid parameter
 func Test_StringWithPanic1(t *testing.T) {
 	const (
-		FLOATING = "Z"
-		HIGH = "H"
-		LOW = "L"
+		FLOATING        = "Z"
+		HIGH            = "H"
+		LOW             = "L"
 		INVALID_DEFAULT = "!!!Invalid"
-		INVALID_CUSTOM = "???"
+		INVALID_CUSTOM  = "???"
 	)
 
 	defer func() {
-        if r := recover(); r == nil {
-            t.Errorf("TriState.StringWith() did not panic")
-        }
-    }()
+		if r := recover(); r == nil {
+			t.Errorf("TriState.StringWith() did not panic")
+		}
+	}()
 
 	labelsBad1 := []string{FLOATING, LOW, INVALID_CUSTOM, FLOATING, FLOATING}
 
@@ -145,18 +145,18 @@ func Test_StringWithPanic1(t *testing.T) {
 // Check StringWith() with invalid parameter
 func Test_StringWithPanic2(t *testing.T) {
 	const (
-		FLOATING = "Z"
-		HIGH = "H"
-		LOW = "L"
+		FLOATING        = "Z"
+		HIGH            = "H"
+		LOW             = "L"
 		INVALID_DEFAULT = "!!!Invalid"
-		INVALID_CUSTOM = "???"
+		INVALID_CUSTOM  = "???"
 	)
 
 	defer func() {
-        if r := recover(); r == nil {
-            t.Errorf("TriState.StringWith() did not panic")
-        }
-    }()
+		if r := recover(); r == nil {
+			t.Errorf("TriState.StringWith() did not panic")
+		}
+	}()
 
 	labelsBad2 := []string{FLOATING, LOW}
 
