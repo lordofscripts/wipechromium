@@ -7,9 +7,9 @@
 package wipechromium
 
 import (
-	"os"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 )
 
@@ -20,7 +20,6 @@ import (
 /* ----------------------------------------------------------------
  *							M e t h o d s
  *-----------------------------------------------------------------*/
-
 
 /* ----------------------------------------------------------------
  *							F u n c t i o n s
@@ -42,9 +41,9 @@ func AtHome(fileOrDir string) string {
 func IsDirectory(path string) bool {
 	if finfo, err := os.Stat(path); err == nil {
 		return finfo.IsDir()
-    }
-    // not exist or not a directory
-    return false
+	}
+	// not exist or not a directory
+	return false
 }
 
 func IsFile(path string) TriState {
@@ -54,9 +53,9 @@ func IsFile(path string) TriState {
 		} else {
 			return No
 		}
-    }
-    // not exist or not a directory
-    return Undecided
+	}
+	// not exist or not a directory
+	return Undecided
 }
 
 func MoveDir(src, dest string) error {
@@ -148,7 +147,3 @@ func MoveWithPattern(dir, pattern string) error {
 	log.Printf("Deleted %s on %s", pattern, dir)
 	return nil
 }
-/* ----------------------------------------------------------------
- *						M A I N | E X A M P L E
- *-----------------------------------------------------------------*/
-

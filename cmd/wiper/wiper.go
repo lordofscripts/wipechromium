@@ -81,7 +81,7 @@ func (b *BrowserWipe) Scan() {
 
 func (b *BrowserWipe) GetCleaner(which browsers.Browser, profile string) error {
 	if which == browsers.ChromiumBrowser {
-		b.cleaner = chromium.NewChromiumCleaner(profile, logx)
+		b.cleaner = chromium.NewChromiumCleaner(profile, cmn.SizeModeIEC, logx)
 		return nil
 	}
 
@@ -107,7 +107,7 @@ func help() {
 		PACKAGE   = "WipeChromium"
 	)
 
-	cmn.Copyright(PACKAGE, cmn.CO1, true)
+	cmn.Copyright(cmn.CO1, true)
 	fmt.Println("Usage:")
 	fmt.Println("\tScan the system for browser data presence.")
 	fmt.Println("\t\twipechromium -scan")

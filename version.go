@@ -90,8 +90,8 @@ func BuyMeCoffee(recipient string) {
 	fmt.Printf("\t%c Buy me a Coffee? https://www.buymeacoffee/%s\n", coffee, recipient)
 }
 
-func Copyright(name, owner string, withLogo bool) {
-	fmt.Printf("\t\u2720 %s %s (C)2024 %s \u269d\n", name, Version, Reverse(owner))
+func Copyright(owner string, withLogo bool) {
+	fmt.Printf("\t\u2720 %s %s \u269d\n", Version, Reverse(owner))
 	fmt.Println("\t\t\t\t", Logo())
 }
 
