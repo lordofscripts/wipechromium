@@ -7,10 +7,10 @@
 package wipechromium
 
 import (
-	"os"
 	"fmt"
-	"slices"	// GO v1.18
+	"os"
 	"path/filepath"
+	"slices" // GO v1.18
 
 	"github.com/blang/vfs"
 )
@@ -30,12 +30,12 @@ var _ IDirCleaner = (*DirCleanerVFS)(nil)
  *-----------------------------------------------------------------*/
 
 type DirCleanerVFS struct {
-	Root	string
+	Root        string
 	cleanedSize int64
-	removedQty	int
-	skippedQty	int
-	logx		ILogger
-	vfs			vfs.Filesystem
+	removedQty  int
+	skippedQty  int
+	logx        ILogger
+	vfs         vfs.Filesystem
 }
 
 /* ----------------------------------------------------------------
@@ -66,10 +66,10 @@ func (d *DirCleanerVFS) CleanUp(exceptions []string) error {
 	d.removedQty = 0
 	d.skippedQty = 0
 	entries, err := d.vfs.ReadDir(d.Root)
-    if err != nil {
-        d.logx.Print(err)
-        return err
-    }
+	if err != nil {
+		d.logx.Print(err)
+		return err
+	}
 
 	var executor func(string) error = nil
 
@@ -81,132 +81,158 @@ func (d *DirCleanerVFS) CleanUp(exceptions []string) error {
 		return d.vfs.Remove(path)
 	}
 
-    for _, item := range entries {
-   		if !slices.Contains(exceptions, item.Name()) {
-   			if item.IsDir() {
+	for _, item := range entries {
+		if !slices.Contains(exceptions, item.Name()) {
+			if item.IsDir() {
 				executor = execRemoveRecursive
 			} else {
 				executor = execRemoveSingle
 			}
 
-/*   			if finfo, err := item.Info(); err == nil {
-   				// recalculate saved space
-				d.cleanedSize += finfo.Size()
-				if finfo.IsDir() {
-					executor = execRemoveRecursive
-				} else {
-					executor = execRemoveSingle
-				}
-   			} else {
-				d.logx.Print("DirCleaner WARN:", err)
-   			}*/
-
-			// delete
 			fullPath := filepath.Join(d.Root, item.Name())
 			if err := executor(fullPath); err != nil {
 				return err
 			} else {
 				if item.IsDir() {
 					// LIMITATION OF VFS SO FAR
-					//d.cleanedSize += GetDirectorySizeVFS(d.vfs, fullPath)
+					folderSize, _ := GetDirectorySizeVFS(d.vfs, fullPath)
+					d.cleanedSize += folderSize
 				} else {
 					// get file size
-   					d.cleanedSize += item.Size()
+					d.cleanedSize += item.Size()
 				}
 			}
 
 			d.removedQty += 1
-   		} else {
-   			d.skippedQty += 1
+		} else {
+			d.skippedQty += 1
 			d.logx.Printf("DirCleaner skipping %s", item.Name())
-   		}
-    }
-    return nil
+		}
+	}
+	return nil
 }
 
 func (d *DirCleanerVFS) CleanedSize() int64 {
 	return d.cleanedSize
 }
 
-
 /* ----------------------------------------------------------------
  *							F u n c t i o n s
  *-----------------------------------------------------------------*/
 
-func GetDirectorySize(folder string) int64 {
+func GetDirectorySizeVFS(fs vfs.Filesystem, folder string) (int64, error) {
 	// Step 1: remember subdirectories we must recurse
 	var folders []string
-    // Step 2: read directory and handle errors.
-    dirRead, err := os.Open(folder)
-    if err != nil {
-        panic(err)
-    }
-    dirFiles, err := dirRead.Readdir(0)
-    if err != nil {
-        panic(err)
-    }
-
-    // Step 3: sum up Size of all files in the directory.
-    sum := int64(0)
-    for _, fileHere := range dirFiles {
-		if fileHere.IsDir() {
-			// Size() returns the size of the directory entry not the actual
-			// sum of file sizes in that directory. Therefore, we skip it for later.
-			folders = append(folders, filepath.Join(folder, fileHere.Name()))
-		} else {
-			csize := fileHere.Size()
-		    sum += csize
-			//fmt.Printf("%8d %5t %s\n", csize, fileHere.IsDir(), fileHere.Name())
-		}
-    }
-
-    // Step 4: close directory and return the sum.
-    dirRead.Close()
-
-	// Step: 5: Iterate recursively through the directories we encountered
-	for _, dn := range folders {
-		sum += GetDirectorySize(dn)
+	// Step 2: read directory and handle errors.
+	/*    dirRead, err := vfs.Open(fs, folder)
+	      if err != nil {
+	          panic(err)
+	      }*/
+	//dirFiles, err := dirRead.ReadDir(0)
+	dirFiles, err := fs.ReadDir(folder)
+	if err != nil {
+		return 0, err
 	}
-    return sum
-}
 
-
-//  UNFORTUNATELY vfs does not support neither Readdir() nor ReadDir()
-func GetDirectorySizeVFS(fs vfs.Filesystem, folder string) int64 {
-	// Step 1: remember subdirectories we must recurse
-	var folders []string
-    // Step 2: read directory and handle errors.
-/*    dirRead, err := vfs.Open(fs, folder)
-    if err != nil {
-        panic(err)
-    }*/
-    //dirFiles, err := dirRead.ReadDir(0)
-    dirFiles,err := fs.ReadDir(folder)
-    if err != nil {
-        panic(err)
-    }
-
-    // Step 3: sum up Size of all files in the directory.
-    sum := int64(0)
-    for _, fileHere := range dirFiles {
+	// Step 3: sum up Size of all files in the directory.
+	sum := int64(0)
+	for _, fileHere := range dirFiles {
 		if fileHere.IsDir() {
 			// Size() returns the size of the directory entry not the actual
 			// sum of file sizes in that directory. Therefore, we skip it for later.
 			folders = append(folders, filepath.Join(folder, fileHere.Name()))
 		} else {
 			var csize int64 = fileHere.Size()
-
-		    sum += csize
+			sum += csize
 			//fmt.Printf("%8d %5t %s\n", csize, fileHere.IsDir(), fileHere.Name())
 		}
-    }
+	}
 
-    // Step 4: close directory and return the sum.
-    //dirRead.Close()
+	// Step 4: close directory and return the sum.
+	//dirRead.Close()
 
 	// Step: 5: Iterate recursively through the directories we encountered
 	for _, dn := range folders {
-		sum += GetDirectorySize(dn)
+		folderSize, _ := GetDirectorySize(dn)
+		sum += folderSize
 	}
-    return sum
+	return sum, nil
+}
+
+// Utility to replicate a real filesystem into the selected Virtual File System.
+// Returns: dirCnt, fileCnt, error
+func MimicFileSystem(root string, fs vfs.Filesystem) (int64, int64, error) {
+	// ensure a directory is made
+	cloneDirectoryOnly := func(rootSrc string, all bool) error {
+		if fileStat, err := os.Stat(rootSrc); err != nil {
+			return err
+		} else {
+			if all {
+				if err := vfs.MkdirAll(fs, rootSrc, fileStat.Mode()); err != nil {
+					return err
+				}
+			} else {
+				if err := fs.Mkdir(rootSrc, fileStat.Mode()); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+
+	// ensure dummy file is created
+	cloneFileOnly := func(fullpath, content string) error {
+		if fileStat, err := os.Stat(fullpath); err != nil {
+			return err
+		} else {
+			if err := vfs.WriteFile(fs, fullpath, []byte(content), fileStat.Mode()); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	// 1. Create root
+	if err := cloneDirectoryOnly(root, true); err != nil {
+		return -1, -1, err
+	}
+
+	// 2. Walk that root
+	var folders []string
+	var dirCnt, fileCnt int64
+
+	if dirFiles, err := os.ReadDir(root); err != nil {
+		return -1, -1, err
+	} else {
+		// 2.2 through each file/dir at this level
+		for _, fileHere := range dirFiles {
+			if fileHere.IsDir() {
+				// Size() returns the size of the directory entry not the actual
+				// sum of file sizes in that directory. Therefore, we skip it for later.
+				dirName := filepath.Join(root, fileHere.Name())
+				folders = append(folders, dirName)
+				if err := cloneDirectoryOnly(dirName, false); err != nil {
+					return -1, -1, err
+				}
+				dirCnt++
+			} else {
+				fileName := filepath.Join(root, fileHere.Name())
+				if err := cloneFileOnly(fileName, "..."); err != nil {
+					return -1, -1, err
+				}
+				fileCnt++
+			}
+		}
+	}
+
+	// 3: Iterate recursively through the directories we encountered
+	for _, dirName := range folders {
+		if dC, fC, err := MimicFileSystem(dirName, fs); err != nil {
+			return -1, -1, err
+		} else {
+			dirCnt += dC
+			fileCnt += fC
+		}
+	}
+	return dirCnt, fileCnt, nil
 }

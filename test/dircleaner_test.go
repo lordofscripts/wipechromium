@@ -7,6 +7,7 @@ package test
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -151,7 +152,7 @@ func Test_DirCleanerCache(t *testing.T) {
 		t.Errorf(err.Error())
 	} else {
 		totalObjects = qty
-		showVFS(mfs, CacheDir)
+		showVFS(mfs, CacheDir, false)
 	}
 
 	cleaner := wipechromium.NewDirCleanerVFS(mfs, CacheDir, logx)
@@ -178,7 +179,7 @@ func Test_DirCleanerData(t *testing.T) {
 		t.Errorf(err.Error())
 	} else {
 		totalObjects = qty
-		showVFS(mfs, DataDir)
+		showVFS(mfs, DataDir, false)
 	}
 
 	cleaner := wipechromium.NewDirCleanerVFS(mfs, DataDir, logx)
@@ -191,6 +192,28 @@ func Test_DirCleanerData(t *testing.T) {
 		}
 	} else {
 		t.Errorf(err.Error())
+	}
+}
+
+func Test_MimicFileSystem(t *testing.T) {
+	wd, _ := os.Getwd()
+	upPath := filepath.Join(wd, "../")
+
+	fmt.Printf("Mimicking %q as Memory VFS\n", upPath)
+	mfs := memfs.Create()
+	dirCnt, fileCnt, err := wipechromium.MimicFileSystem(upPath, mfs)
+	if err != nil {
+		t.Errorf("Couldn't mimic %v", err)
+	} else {
+		dC, fC := showVFS(mfs, upPath, false)
+		if dirCnt != dC {
+			t.Errorf("Expected %d dirs in VFS got %d", dirCnt, dC)
+		}
+		if fileCnt != fC {
+			t.Errorf("Expected %d files in VFS got %d", fileCnt, fC)
+		}
+
+		fmt.Printf("OK. Mimicked %d dirs & %d files in MemVFS\n", dirCnt, fileCnt)
 	}
 }
 
@@ -248,20 +271,43 @@ func tallyTree(fs vfs.Filesystem, root string) int64 {
 	return -1
 }
 
-func showVFS(fs vfs.Filesystem, root string) {
-	fmt.Printf("Dumping FileSystem %q\n", root)
+// recursively show a Virtual File System starting at root. The main
+// caller should set isRecursing to false.
+// Returns: number of directories & files encountered
+func showVFS(fs vfs.Filesystem, root string, isRecursing bool) (dirCnt, fileCnt int64) {
+	if !isRecursing {
+		fmt.Printf("Dumping FileSystem %q\n", root)
+	} else {
+		fmt.Printf("\tDumping Subdir %q\n", root)
+	}
 
+	fileCnt = int64(0)
+	dirCnt = int64(0)
+	otherDirs := make([]string, 0)
 	if entries, err := fs.ReadDir(root); err == nil {
 		for _, fso := range entries {
 			label := "File"
 			if fso.IsDir() {
 				label = "Dir"
+				otherDirs = append(otherDirs, filepath.Join(root, fso.Name()))
+				dirCnt++
+			} else {
+				fileCnt++
 			}
 			fmt.Printf("\t%5s %6d %s\n", label, fso.Size(), fso.Name())
+		}
+
+		// recurse directories
+		for _, dirName := range otherDirs {
+			subDirCnt, subFileCnt := showVFS(fs, dirName, true)
+			dirCnt += subDirCnt
+			fileCnt += subFileCnt
 		}
 	} else {
 		fmt.Println("VFS CANNOT SHOW", err.Error())
 	}
+
+	return dirCnt, fileCnt
 }
 
 func IsFile(fs vfs.Filesystem, path string) wipechromium.TriState {
