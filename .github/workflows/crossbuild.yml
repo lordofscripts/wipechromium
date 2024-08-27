@@ -6,7 +6,7 @@ name: crossbuild
 on:
   release:
     types:
-      - [created, edited]
+      - edited
 
 # jobs
 jobs:
