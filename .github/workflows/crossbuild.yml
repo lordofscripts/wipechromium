@@ -4,9 +4,9 @@ name: crossbuild
 
 # on events
 on:
-  release:
+  watch:
     types:
-      - edited
+      - started
 
 # jobs
 jobs:
