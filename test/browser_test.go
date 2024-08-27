@@ -6,7 +6,7 @@
 package test
 
 import (
-	"lordofscripts/wipechromium/browsers"
+	"github.com/lordofscripts/wipechromium/browsers"
 	"testing"
 )
 

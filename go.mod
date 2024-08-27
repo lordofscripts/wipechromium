@@ -1,4 +1,4 @@
-module lordofscripts/wipechromium
+module github.com/lordofscripts/wipechromium
 
 go 1.22.1
 

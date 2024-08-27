@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"testing"
 
-	cmn "lordofscripts/wipechromium"
+	cmn "github.com/lordofscripts/wipechromium"
 )
 
 /* ----------------------------------------------------------------

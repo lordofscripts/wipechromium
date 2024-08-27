@@ -7,7 +7,7 @@ package test
 
 import (
 	"fmt"
-	cmn "lordofscripts/wipechromium"
+	cmn "github.com/lordofscripts/wipechromium"
 	"math"
 	"testing"
 )

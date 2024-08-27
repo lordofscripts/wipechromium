@@ -11,7 +11,7 @@ package chromium
 import (
 	"path/filepath"
 
-	cmn "lordofscripts/wipechromium"
+	cmn "github.com/lordofscripts/wipechromium"
 )
 
 /* ----------------------------------------------------------------

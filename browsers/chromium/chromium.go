@@ -12,8 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	cmn "lordofscripts/wipechromium"
-	"lordofscripts/wipechromium/browsers"
+	cmn "github.com/lordofscripts/wipechromium"
+	"github.com/lordofscripts/wipechromium/browsers"
 )
 
 /* ----------------------------------------------------------------

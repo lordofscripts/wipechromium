@@ -6,7 +6,7 @@
 package test
 
 import (
-	cmn "lordofscripts/wipechromium"
+	cmn "github.com/lordofscripts/wipechromium"
 	"testing"
 )
 

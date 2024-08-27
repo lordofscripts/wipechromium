@@ -14,10 +14,10 @@ import (
 	"os"
 	"strings"
 
-	cmn "lordofscripts/wipechromium"
+	cmn "github.com/lordofscripts/wipechromium"
 	// Here one package for each supported browser
-	"lordofscripts/wipechromium/browsers"
-	"lordofscripts/wipechromium/browsers/chromium"
+	"github.com/lordofscripts/wipechromium/browsers"
+	"github.com/lordofscripts/wipechromium/browsers/chromium"
 )
 
 /* ----------------------------------------------------------------
