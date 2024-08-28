@@ -106,20 +106,7 @@ func NewChromiumCleaner(profile string, smode cmn.SizeMode, logger ...cmn.ILogge
  *-----------------------------------------------------------------*/
 
 func (c *ChromiumCleaner) String() string {
-	var reportedSize string = ""
-	switch c.sizeMode {
-	case cmn.SizeModeSI:
-		reportedSize = cmn.ByteCountSI(c.cleanedSize)
-		break
-	case cmn.SizeModeIEC:
-		reportedSize = cmn.ByteCountIEC(c.cleanedSize)
-		break
-	case cmn.SizeModeStd:
-		fallthrough
-	default:
-		reportedSize = cmn.AddThousands(c.cleanedSize, ',')
-		break
-	}
+	reportedSize := cmn.ReportByteCount(c.cleanedSize, c.sizeMode)
 
 	c.logx.Print("Cleaned ", cmn.AddThousands(c.cleanedSize, ','))
 	c.logx.Print("Cleaned ", cmn.ByteCountSI(c.cleanedSize))
@@ -173,9 +160,16 @@ func (c *ChromiumCleaner) Tell() bool {
 	ChromiumDataDir, ChromiumCachesDir := GetChromiumDirs()
 	dataExists := cmn.IsDirectory(ChromiumDataDir)
 	cacheExists := cmn.IsDirectory(ChromiumCachesDir)
+	var sizeD, sizeC int64
+	if dataExists {
+		sizeD, _ = cmn.GetDirectorySize(ChromiumDataDir)
+	}
+	if cacheExists {
+		sizeC, _ = cmn.GetDirectorySize(ChromiumCachesDir)
+	}
 	fmt.Println("Chromium Directories:")
-	fmt.Println("\tData : ", ChromiumDataDir, dataExists)
-	fmt.Println("\tCache: ", ChromiumCachesDir, cacheExists)
+	fmt.Printf("\tData : %5t %s %s\n", dataExists, ChromiumDataDir, cmn.ReportByteCount(sizeD, c.sizeMode))
+	fmt.Printf("\tCache: %5t %s %s\n", cacheExists, ChromiumCachesDir, cmn.ReportByteCount(sizeC, c.sizeMode))
 	return dataExists && cacheExists
 }
 
@@ -232,7 +226,7 @@ func (c *ChromiumCleaner) clearCache() error {
 	}
 
 	c.cleanedSize += cacheSize
-	fmt.Printf("\tDeleted %s bytes from cache\n", cmn.AddThousands(cacheSize, ','))
+	fmt.Printf("\tDeleted %s bytes from cache\n", cmn.ReportByteCount(cacheSize, c.sizeMode))
 	c.logx.Print("clearCache DONE")
 	return nil
 }
@@ -249,7 +243,7 @@ func (c *ChromiumCleaner) eraseProfile() error {
 
 	// (b) we are going to clean the profile's top level
 	var filter cmn.IDirCleaner
-	filter = cmn.NewDirCleaner(c.ProfileRoot)
+	filter = cmn.NewDirCleaner(c.ProfileRoot, c.sizeMode)
 
 	// (c) except these important profile items
 	err := filter.CleanUp(ProfileExceptions)
@@ -259,7 +253,7 @@ func (c *ChromiumCleaner) eraseProfile() error {
 	}
 
 	c.cleanedSize += filter.CleanedSize()
-	fmt.Printf("\t...Erased %d bytes\n", c.cleanedSize)
+	fmt.Printf("\t...Erased %s bytes\n", cmn.ReportByteCount(c.cleanedSize, c.sizeMode))
 	return nil
 }
 

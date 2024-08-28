@@ -17,12 +17,6 @@ import (
  *							G l o b a l s
  *-----------------------------------------------------------------*/
 
-const (
-	SizeModeStd SizeMode = iota // full numeric size
-	SizeModeSI                  // Sistema Internacional: 1KB = 1000
-	SizeModeIEC                 // Binary System: 1KB = 1024
-)
-
 var _ IDirCleaner = (*DirCleaner)(nil)
 
 /* ----------------------------------------------------------------
@@ -44,16 +38,15 @@ type DirCleaner struct {
 	cleanedSize int64
 	removedQty  int
 	skippedQty  int
+	sizeMode    SizeMode
 	logx        ILogger
 }
-
-type SizeMode uint
 
 /* ----------------------------------------------------------------
  *							C o n s t r u c t o r s
  *-----------------------------------------------------------------*/
 
-func NewDirCleaner(root string, logger ...ILogger) *DirCleaner {
+func NewDirCleaner(root string, sizing SizeMode, logger ...ILogger) *DirCleaner {
 	const cName = "DirCleaner"
 	var logCtx ILogger
 	if len(logger) == 0 {
@@ -61,31 +54,19 @@ func NewDirCleaner(root string, logger ...ILogger) *DirCleaner {
 	} else {
 		logCtx = logger[0].InheritAs(cName)
 	}
-	return &DirCleaner{root, 0, 0, 0, logCtx}
+	return &DirCleaner{root, 0, 0, 0, sizing, logCtx}
 }
 
 /* ----------------------------------------------------------------
  *							M e t h o d s
  *-----------------------------------------------------------------*/
 
-func (s SizeMode) String() string {
-	switch s {
-	case SizeModeStd:
-		return "Standard"
-	case SizeModeSI:
-		return "International"
-	case SizeModeIEC:
-		return "Binary"
-	default:
-		panic("Unknown size mode")
-	}
-}
-
+// Stringer interface
 func (d *DirCleaner) String() string {
 	return fmt.Sprintf("DirCleaner %q del:%d skip:%d size:%s", d.Root,
 		d.removedQty,
 		d.skippedQty,
-		AddThousands(d.cleanedSize, ','))
+		ReportByteCount(d.cleanedSize, d.sizeMode))
 }
 
 func (d *DirCleaner) CleanUp(exceptions []string) error {

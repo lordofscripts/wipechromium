@@ -14,6 +14,25 @@ import (
  *							F u n c t i o n s
  *-----------------------------------------------------------------*/
 
+// Given a total size return a string with that value formatted in
+// either of the size formats (Standard, International, Binary)
+func ReportByteCount(count int64, mode SizeMode) string {
+	var output string
+	switch mode {
+	case SizeModeSI:
+		output = ByteCountSI(count)
+		break
+	case SizeModeIEC:
+		output = ByteCountIEC(count)
+		break
+	case SizeModeStd:
+		fallthrough
+	default:
+		output = AddThousands(count, ',')
+	}
+	return output
+}
+
 // Byte count formatted using International System (1K = 1000)
 func ByteCountSI(b int64) string {
 	const UNIT = 1000

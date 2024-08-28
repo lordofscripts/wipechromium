@@ -30,6 +30,7 @@ const (
 	FLAG_HELP_ME      string = "This help"
 	FLAG_HELP_CACHE   string = "Erase cache only"
 	FLAG_HELP_PROFILE string = "Erase profile junk only"
+	FLAG_HELP_SIZE    string = "Select size reporting mode (Std, SI, IEC)"
 	FLAG_HELP_LOG     string = "Enable log output"
 )
 
@@ -51,7 +52,8 @@ var (
  *-----------------------------------------------------------------*/
 
 type BrowserWipe struct {
-	cleaner browsers.IBrowsers
+	cleaner  browsers.IBrowsers
+	SizeMode cmn.SizeMode
 }
 
 /* ----------------------------------------------------------------
@@ -72,16 +74,16 @@ func (b *BrowserWipe) Scan() {
 	}
 
 	for _, br := range supportedBrowsers {
-		b.GetCleaner(br, "")
+		b.GetCleaner(br, "", b.SizeMode)
 		b.cleaner.Tell()
 		installed := b.cleaner.IdentifyAppDataRoot()
 		fmt.Printf("\tInstalled: %t\n", installed)
 	}
 }
 
-func (b *BrowserWipe) GetCleaner(which browsers.Browser, profile string) error {
+func (b *BrowserWipe) GetCleaner(which browsers.Browser, profile string, mode cmn.SizeMode) error {
 	if which == browsers.ChromiumBrowser {
-		b.cleaner = chromium.NewChromiumCleaner(profile, cmn.SizeModeIEC, logx)
+		b.cleaner = chromium.NewChromiumCleaner(profile, mode, logx)
 		return nil
 	}
 
@@ -128,6 +130,7 @@ func help() {
 	fmt.Printf(HELP_TEMPLATE, "-c", "-cache", "", FLAG_HELP_CACHE)
 	fmt.Printf(HELP_TEMPLATE, "-p", "-profile", "", FLAG_HELP_PROFILE)
 	fmt.Printf(HELP_TEMPLATE, "-b", "-browser", "BROWSER", FLAG_HELP_BROWSER)
+	fmt.Printf(HELP_TEMPLATE, "-z", "-size", "Std", FLAG_HELP_SIZE)
 	fmt.Printf(HELP_TEMPLATE, "-s", "-scan", "", FLAG_HELP_SCAN)
 	fmt.Printf(HELP_TEMPLATE, "", "-log", "", FLAG_HELP_LOG)
 
@@ -155,7 +158,7 @@ func die(exitCode int, msgformat string, v ...any) {
 // Usage: wipechromium -p 'Profile 1'
 func main() {
 	// A. Command-line options
-	var profile, browserName string
+	var profile, browserName, szmodeS string
 	var cacheOnly, profileOnly, logging, scanOnly, helpme bool
 	flag.StringVar(&browserName, "b", browsers.ChromiumBrowser.String(), FLAG_HELP_BROWSER)
 	flag.StringVar(&browserName, "browser", browsers.ChromiumBrowser.String(), FLAG_HELP_BROWSER)
@@ -169,6 +172,8 @@ func main() {
 	flag.BoolVar(&cacheOnly, "cache", false, FLAG_HELP_CACHE)
 	flag.BoolVar(&profileOnly, "p", false, FLAG_HELP_PROFILE)
 	flag.BoolVar(&profileOnly, "profile", false, FLAG_HELP_PROFILE)
+	flag.StringVar(&szmodeS, "size", "Std", FLAG_HELP_SIZE)
+	flag.StringVar(&szmodeS, "z", "Std", FLAG_HELP_SIZE)
 	flag.BoolVar(&logging, "log", false, FLAG_HELP_LOG)
 	flag.Parse()
 
@@ -202,29 +207,47 @@ func main() {
 		die(2, "Not a supported browser %q", browserName)
 	}
 
-	// (b.5) Conditional Logging
+	// (b.5) Size reporting mode
+	var sizeMode cmn.SizeMode
+	switch strings.ToLower(szmodeS) {
+	case "si":
+		sizeMode = cmn.SizeModeSI
+		break
+	case "iec":
+		sizeMode = cmn.SizeModeIEC
+		break
+	case "std":
+		sizeMode = cmn.SizeModeStd
+		break
+	default:
+		die(3, "Invalid size mode (SI|IEC|STD) %q", szmodeS)
+	}
+
+	// (b.6) Conditional Logging
 	logx = cmn.NewConditionalLogger(logging, "Main")
 
-	// (b.6) Prologue
+	// (b.7) Prologue
 	if !scanOnly {
 		fmt.Printf("Browser name  : %s\n", browser)
 		fmt.Printf("Profile name  : %s\n", profile)
 		fmt.Printf("Erase cache   : %t\n", cacheOnly)
 		fmt.Printf("Erase profile : %t\n", profileOnly)
+		fmt.Printf("Size mode     : %s\n", sizeMode)
 		fmt.Printf("Logging enable: %t\n", logging)
 	}
 
 	// C. Execute
 	runner := &BrowserWipe{}
+	runner.SizeMode = sizeMode
 	if scanOnly {
 		runner.Scan()
 	} else {
-		if err := runner.GetCleaner(browser, profile); err == nil {
+		if err := runner.GetCleaner(browser, profile, sizeMode); err == nil {
 			if code, err := runner.Run(cacheOnly, profileOnly); err != nil {
 				die(code, err.Error())
 			}
 		} else {
-			die(3, err.Error())
+			die(4, err.Error())
 		}
 	}
 
