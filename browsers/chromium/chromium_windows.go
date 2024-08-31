@@ -30,10 +30,12 @@ func GetChromiumDirs() (string, string) {
 // *MacOS: ~/Library/Caches/Google/Chromium/Default
 // *Windows:
 func GetCacheDir() string { // TODO: (Windows) needs to be verified!
-	ChromiumCachesDir, err := filepath.Join(os.UserCacheDir(), "Chromium", "User Data")
+	cacheDir, err := os.UserCacheDir()
 	if err != nil {
 		panic(err.Error())
 	}
+	ChromiumCachesDir := filepath.Join(cacheDir, "Chromium", "User Data", "Default", "Cache")
+
 	return ChromiumCachesDir
 }
 
@@ -43,6 +45,6 @@ func GetCacheDir() string { // TODO: (Windows) needs to be verified!
 // *Windows: %LOCALAPPDATA%\Google\Chrome\User Data\Default
 func GetDataDir() string { // TODO: (Windows) needs to be verified!
 	cacheDir := GetCacheDir()
-	ChromiumProfilesDir := filepath.Join(cacheDir, "Chromium", "User Data")
+	ChromiumProfilesDir := filepath.Join(cacheDir, "Chromium", "User Data", "Default")
 	return ChromiumProfilesDir
 }
