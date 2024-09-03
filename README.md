@@ -11,6 +11,8 @@
 [![Updated](https://badges.pufler.dev/updated/lordofscripts/wipechromium)](https://badges.pufler.dev)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/lordofscripts/wipechromium)
 
+![Successful](./docs/assets/app_head_wipechromium.png)
+
 *WipeChromium* is a small utility written in Go (v1.22) whose purpose is doing
 something I need to do often: wipe out my Chromium browser data while keeping
 only the important stuff such as **Bookmarks, Settings, Extensions & Web Applications**
@@ -45,6 +47,22 @@ Go Version: >= v1.18
 ## Installation
 
 > `go install github.com/lordofscripts/wipechromium`
+
+But most certainly, as an end-user, you just want the actual program to clean up your
+browser profiles. For that, head to the
+
+* Go to the [Releases](https://github.com/lordofscripts/wipechromium/releases) page,
+* Select the latest release,
+* Therein, down in the **Assets** section download the binary for your OS & platform (Linux/Unix,
+  Windows, MacOS).
+
+Once downloaded, assuming the filename is `wipechromium`, do:
+
+* Linux: `chmod ugo+x wipechromium`
+* Windows: `ren wipechromium wipechromum.exe`
+* MacOS: `chmod 755 wipechromium`
+
+Afterwards I suggest you first run the program with the `-scan` option.
 
 ## Usage
 
@@ -143,6 +161,10 @@ However, since usually you would want to do both, the internal logic enables
 > `wipechromium -browser Chromium -name "Profile X"`
 
 which will clean up both the profile data and the profile cache in one run.
+
+##### Other Credits
+
+Gopher's shield illustration by [dekob2](https://icons8.com/illustrations/author/A7iGlOUD5Neq) from [Ouch! Illustrations](https://icons8.com/illustrations).
 
 -----
 > All Rights Reserved [LordOfScripts&trade;](https://allmylinks.com/lordofscripts)
