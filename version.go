@@ -1,6 +1,6 @@
 /* -----------------------------------------------------------------
- *					L o r d  O f   S c r i p t s (tm)
- *				  Copyright (C)2024 Dídimo Grimaldo T.
+ *		L o r d  O f   S c r i p t s (tm)
+ *	       Copyright (C)2024 Dídimo Grimaldo T.
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *	PACKAGE VERSION
  *-----------------------------------------------------------------*/
@@ -14,6 +14,16 @@ import (
  *							G l o b a l s
  *-----------------------------------------------------------------*/
 const (
+	// Useful Unicode Characters
+	CHR_COPYRIGHT       = '\u00a9' // ©
+	CHR_REGISTERD       = '\u00ae' // ®
+	CHR_GUILLEMET_L     = '\u00ab' // «
+	CHR_GUILLEMET_R     = '\u00bb' // »
+	CHR_TRADEMARK       = '\u2122' // ™
+	CHR_SAMARITAN       = '\u214f' // ⅏
+	CHR_PLACEOFINTEREST = '\u2318' // ⌘
+	CHR_HIGHVOLTAGE     = '\u26a1' // ⚡
+
 	CO1 = "odlamirG omidiD 4202)C("
 	CO2 = "stpircS fO droL 4202)C("
 
@@ -28,7 +38,7 @@ const (
 )
 
 // NOTE: Change these values accordingly
-var Version string = version{NAME, "0.3", statusReleased, 0}.String()
+var Version string = version{NAME, "0.4.0", statusReleased, 0}.String()
 
 /* ----------------------------------------------------------------
  *							T y p e s

@@ -4,7 +4,9 @@
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Utility to Clear Chromium Cache & Profile Data for PRIVACY.
  * Settings, Bookmarks, FileSystem & Extensions are cleaned but not deleted.
+ * Supports Chromium & Firefox ESR browsers.
  * Created: 21 Aug 2024
+ * Updated: 18 Sep 2024
  *-----------------------------------------------------------------*/
 package main
 
@@ -18,6 +20,7 @@ import (
 	// Here one package for each supported browser
 	"github.com/lordofscripts/wipechromium/browsers"
 	"github.com/lordofscripts/wipechromium/browsers/chromium"
+	"github.com/lordofscripts/wipechromium/browsers/firefox"
 )
 
 /* ----------------------------------------------------------------
@@ -32,6 +35,7 @@ const (
 	FLAG_HELP_PROFILE string = "Erase profile junk only"
 	FLAG_HELP_SIZE    string = "Select size reporting mode (Std, SI, IEC)"
 	FLAG_HELP_LOG     string = "Enable log output"
+	FLAG_HELP_DRYRUN  string = "Enable dry-run"
 )
 
 var (
@@ -67,27 +71,38 @@ type BrowserWipe struct {
 // Scan the system for all supported browsers and indicate whether the
 // data/cache directories exist
 func (b *BrowserWipe) Scan() {
-	// Here always the list of browser cleaners we support. Each one
-	// has a package under "lordofscripts/wipechromium/browsers"
-	supportedBrowsers := []browsers.Browser{
-		browsers.ChromiumBrowser,
-	}
-
-	for _, br := range supportedBrowsers {
-		b.GetCleaner(br, "", b.SizeMode)
-		b.cleaner.Tell()
-		installed := b.cleaner.IdentifyAppDataRoot()
-		fmt.Printf("\tInstalled: %t\n", installed)
+	for _, br := range browsers.SupportedBrowsers {
+		err := b.GetCleaner(br, "", true, b.SizeMode, false)
+		if err != nil {
+			fmt.Printf("\tBad Thing: %s %s\n", br, err)
+		} else {
+			b.cleaner.Tell()
+			installed := b.cleaner.IdentifyAppDataRoot()
+			fmt.Printf("\tInstalled: %t\n", installed)
+			if profiles, err := b.cleaner.FindProfileNames(); err == nil {
+				fmt.Println("\tProfiles :")
+				for _, p := range profiles {
+					fmt.Println("\t\t- ", p)
+				}
+			}
+		}
 	}
 }
 
-func (b *BrowserWipe) GetCleaner(which browsers.Browser, profile string, mode cmn.SizeMode) error {
+// Browser Cleaner factory method
+func (b *BrowserWipe) GetCleaner(which browsers.Browser, profile string, scanning bool, mode cmn.SizeMode, dryRun bool) error {
 	if which == browsers.ChromiumBrowser {
-		b.cleaner = chromium.NewChromiumCleaner(profile, mode, logx)
-		return nil
+		b.cleaner = chromium.NewChromiumCleaner(profile, mode, dryRun, logx)
+	} else if which == browsers.FirefoxBrowser {
+		b.cleaner = firefox.NewFirefoxCleaner(profile, scanning, mode, dryRun, logx)
+	} else {
+		return cmn.ErrUnsupportedBrowser
 	}
 
-	return cmn.ErrUnsupportedBrowser
+	if b.cleaner == nil {
+		return cmn.ErrCleanerFailure
+	}
+	return nil
 }
 
 func (b *BrowserWipe) Run(cacheOnly, profileOnly bool) (int, error) {
@@ -132,7 +147,8 @@ func help() {
 	fmt.Printf(HELP_TEMPLATE, "-b", "-browser", "BROWSER", FLAG_HELP_BROWSER)
 	fmt.Printf(HELP_TEMPLATE, "-z", "-size", "Std", FLAG_HELP_SIZE)
 	fmt.Printf(HELP_TEMPLATE, "-s", "-scan", "", FLAG_HELP_SCAN)
-	fmt.Printf(HELP_TEMPLATE, "", "-log", "", FLAG_HELP_LOG)
+	//fmt.Printf(HELP_TEMPLATE, "", "-log", "", FLAG_HELP_LOG)
+	fmt.Printf(HELP_TEMPLATE, "", "-dry", "", FLAG_HELP_DRYRUN) // hidden option
 
 	cmn.BuyMeCoffee(RECIPIENT)
 }
@@ -144,9 +160,9 @@ func die(exitCode int, msgformat string, v ...any) {
 		msgformat += CR
 	}
 
-	fmt.Printf("Bad Thing Happened: exit code %d\n", exitCode)
-	fmt.Println("Message:")
-	fmt.Printf("\t"+msgformat, v...)
+	fmt.Printf("⚓ Bad Thing Happened: exit code %d\n", exitCode)
+	fmt.Println("⚓ Message:")
+	fmt.Printf("⚓ \t"+msgformat, v...)
 
 	os.Exit(exitCode)
 }
@@ -159,7 +175,7 @@ func die(exitCode int, msgformat string, v ...any) {
 func main() {
 	// A. Command-line options
 	var profile, browserName, szmodeS string
-	var cacheOnly, profileOnly, logging, scanOnly, helpme bool
+	var cacheOnly, profileOnly, logging, scanOnly, dryRun, helpme bool
 	flag.StringVar(&browserName, "b", browsers.ChromiumBrowser.String(), FLAG_HELP_BROWSER)
 	flag.StringVar(&browserName, "browser", browsers.ChromiumBrowser.String(), FLAG_HELP_BROWSER)
 	flag.BoolVar(&scanOnly, "s", false, FLAG_HELP_SCAN)
@@ -175,6 +191,7 @@ func main() {
 	flag.StringVar(&szmodeS, "size", "Std", FLAG_HELP_SIZE)
 	flag.StringVar(&szmodeS, "z", "Std", FLAG_HELP_SIZE)
 	flag.BoolVar(&logging, "log", false, FLAG_HELP_LOG)
+	flag.BoolVar(&dryRun, "dry", false, FLAG_HELP_DRYRUN)
 	flag.Parse()
 
 	// B. Validation
@@ -202,6 +219,9 @@ func main() {
 	switch strings.ToLower(browserName) {
 	case "chromium": // default
 		browser = browsers.ChromiumBrowser
+		break
+	case "firefox":
+		browser = browsers.FirefoxBrowser
 		break
 	default:
 		die(2, "Not a supported browser %q", browserName)
@@ -234,15 +254,19 @@ func main() {
 		fmt.Printf("Erase profile : %t\n", profileOnly)
 		fmt.Printf("Size mode     : %s\n", sizeMode)
 		fmt.Printf("Logging enable: %t\n", logging)
+		if dryRun {
+			fmt.Printf("Dry Run enable: %t\n", dryRun)
+		}
 	}
-
+	//os.Exit(100)
 	// C. Execute
 	runner := &BrowserWipe{}
 	runner.SizeMode = sizeMode
+
 	if scanOnly {
 		runner.Scan()
 	} else {
-		if err := runner.GetCleaner(browser, profile, sizeMode); err == nil {
+		if err := runner.GetCleaner(browser, profile, scanOnly, sizeMode, dryRun); err == nil {
 			if code, err := runner.Run(cacheOnly, profileOnly); err != nil {
 				die(code, err.Error())
 			}
