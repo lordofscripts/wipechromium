@@ -1,4 +1,4 @@
-# workflow name
+# workflow name @version 17
 name: CrossBuild
 
 # on events
@@ -40,7 +40,7 @@ jobs:
           - 'windows/386'
 #          - 'windows/amd64'
           - 'linux/arm'
-          - 'darwin/386'
+          - 'darwin/amd64'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
