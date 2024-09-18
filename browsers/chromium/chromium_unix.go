@@ -1,4 +1,4 @@
-//go:build linux || aix || darwin || dragonfly || freebsd || netbsd || openbsd || solaris
+//go:build linux || aix || freebsd || netbsd || openbsd || solaris
 
 /* -----------------------------------------------------------------
  *					L o r d  O f   S c r i p t s (tm)

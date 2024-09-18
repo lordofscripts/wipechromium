@@ -9,9 +9,9 @@
 package firefox
 
 import (
+	"errors"
 	"fmt"
 	"os"
-	"errors"
 	"path/filepath"
 
 	cmn "github.com/lordofscripts/wipechromium"
