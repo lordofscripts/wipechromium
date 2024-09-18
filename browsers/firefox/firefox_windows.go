@@ -11,6 +11,7 @@ package firefox
 import (
 	"fmt"
 	"os"
+	"errors"
 	"path/filepath"
 
 	cmn "github.com/lordofscripts/wipechromium"
