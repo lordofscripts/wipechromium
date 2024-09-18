@@ -46,7 +46,9 @@ Go Version: >= v1.18
 
 ## Installation
 
-> `go install github.com/lordofscripts/wipechromium`
+> `go get github.com/lordofscripts/wipechromium`
+> `go test ./...`
+> `make`
 
 But most certainly, as an end-user, you just want the actual program to clean up your
 browser profiles. For that, head to the
@@ -78,17 +80,17 @@ most users just use their `Default` user profile. This software operats on
 these **User Profiles**.
 
 ### Features
-* At present it supports *Chromium* but it is designed to support extra browsers.
+* At present it supports *Chromium* & *Firefox ESR* but it is designed to support extra browsers.
 * It can `-scan` your system for browser data & cache directories.
 * You can wipe out your entire cache,
-* You can wipe out most of your user profile data,
-* You can wipe the cache & data in one go,
+* You can wipe out most of your user profile data except...,
 * It keeps your precious data: Settings, Web applications, File systems, Bookmarks & Extensions.
+* You can wipe the cache & data in one go, or one or the other.
 
 #### Known Limitations
 
 Although care has been taken to support file operations for Linux/Unix, MacOS
-and Windows, I have only tested it with Linux/Unix.
+and Windows, I have only tested it with Linux/Unix because that's all I have..
 
 
 ### Useful combinations
@@ -161,6 +163,14 @@ However, since usually you would want to do both, the internal logic enables
 > `wipechromium -browser Chromium -name "Profile X"`
 
 which will clean up both the profile data and the profile cache in one run.
+
+### Problems?
+
+* As stated, after installation it is advised to use the `-scan` option.
+* If scans says all is good but you still doubt, run it with the `-dry` option,
+  it will tell you what it would have DELETED without actually doing it!
+* Error? Well, run it with the `-log` option and open a discussion.
+
 
 ##### Other Credits
 
