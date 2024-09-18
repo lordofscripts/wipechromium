@@ -14,8 +14,9 @@
 ![Successful](./docs/assets/app_head_wipechromium.png)
 
 *WipeChromium* is a small utility written in Go (v1.22) whose purpose is doing
-something I need to do often: wipe out my Chromium browser data while keeping
-only the important stuff such as **Bookmarks, Settings, Extensions & Web Applications**
+something I need to do often: wipe out my **Chromium** & **Firefox** browser 
+data while keeping only the important stuff such as **Bookmarks, Settings, 
+Extensions & Web Applications**
 
 Usually you have to use menu options that move from time to time or are too
 cumbersome to find. Additionally, people tend not to know or remember the
@@ -29,6 +30,7 @@ responsible for any data loss**.
 Use Cases:
 
 * You want to *free up space* in your disk
+* Multiple browser support
 * You worry about *scripts* that may have remained after your browsing
 * You are tired of big companies profitting from you with *tracking cookies*
 * You want to *start afresh* without reinstalling everything.
@@ -80,7 +82,7 @@ most users just use their `Default` user profile. This software operats on
 these **User Profiles**.
 
 ### Features
-* At present it supports *Chromium* & *Firefox ESR* but it is designed to support extra browsers.
+* At present it supports **Chromium** & **Firefox ESR** but it is designed to support extra browsers.
 * It can `-scan` your system for browser data & cache directories.
 * You can wipe out your entire cache,
 * You can wipe out most of your user profile data except...,
