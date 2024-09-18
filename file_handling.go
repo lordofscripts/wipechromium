@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 /* ----------------------------------------------------------------
@@ -25,7 +26,7 @@ import (
  *							F u n c t i o n s
  *-----------------------------------------------------------------*/
 
-// Get HOME directory and return the path of fileOrDir right underneath.
+// AtHome gets HOME directory and return the path of fileOrDir right underneath.
 // If HOME is /home/toering then AtHome(".config") returns /home/toering/.config
 func AtHome(fileOrDir string) string {
 	atHome := ""
@@ -33,6 +34,18 @@ func AtHome(fileOrDir string) string {
 		atHome = filepath.Join(home, fileOrDir)
 	} else {
 		log.Fatal("Could not get HOME directory")
+	}
+	return atHome
+}
+
+// FromHome() takes a path and if it starts with the HOME directory, it is
+// replaced by the ~/ home directory notation.
+func FromHome(fileOrDir string) string {
+	atHome := fileOrDir
+	if home, err := os.UserHomeDir(); err == nil {
+		if strings.HasPrefix(fileOrDir, home) { // replace by ~/ notation
+			atHome = "~" + strings.TrimPrefix(fileOrDir, home)
+		}
 	}
 	return atHome
 }

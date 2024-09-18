@@ -39,6 +39,7 @@ type DirCleaner struct {
 	removedQty  int
 	skippedQty  int
 	sizeMode    SizeMode
+	doDryRun    bool
 	logx        ILogger
 }
 
@@ -46,7 +47,7 @@ type DirCleaner struct {
  *							C o n s t r u c t o r s
  *-----------------------------------------------------------------*/
 
-func NewDirCleaner(root string, sizing SizeMode, logger ...ILogger) *DirCleaner {
+func NewDirCleaner(root string, sizing SizeMode, dryRun bool, logger ...ILogger) *DirCleaner {
 	const cName = "DirCleaner"
 	var logCtx ILogger
 	if len(logger) == 0 {
@@ -54,7 +55,7 @@ func NewDirCleaner(root string, sizing SizeMode, logger ...ILogger) *DirCleaner 
 	} else {
 		logCtx = logger[0].InheritAs(cName)
 	}
-	return &DirCleaner{root, 0, 0, 0, sizing, logCtx}
+	return &DirCleaner{root, 0, 0, 0, sizing, dryRun, logCtx}
 }
 
 /* ----------------------------------------------------------------
@@ -73,20 +74,26 @@ func (d *DirCleaner) CleanUp(exceptions []string) error {
 	d.cleanedSize = 0
 	d.removedQty = 0
 	d.skippedQty = 0
-	entries, err := os.ReadDir(d.Root)
+	entries, err := os.ReadDir(d.Root) // always read DIR from underlying OS
 	if err != nil {
 		d.logx.Print(err)
 		return err
 	}
 
+	// Support DRY RUNS
+	dry := NewDryRunner() // but only execute file/dir actions when DRY RUN is inactive
+	if !d.doDryRun {
+		dry.Disable()
+	}
+
 	var executor func(string) error = nil
 
 	execRemoveRecursive := func(path string) error {
-		return os.RemoveAll(path)
+		return dry.RemoveAll(path)
 	}
 
 	execRemoveSingle := func(path string) error {
-		return os.Remove(path)
+		return dry.Remove(path)
 	}
 
 	for _, item := range entries {

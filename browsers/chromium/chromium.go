@@ -21,6 +21,7 @@ import (
  *-----------------------------------------------------------------*/
 
 const (
+	CODENAME              = "Charlie"
 	PERMS                 = 0700
 	RecreateCacheDir bool = false
 )
@@ -73,6 +74,7 @@ type ChromiumCleaner struct {
 	ProfileRoot string
 	cleanedSize int64
 	sizeMode    cmn.SizeMode
+	doDryRun    bool
 	logx        cmn.ILogger
 }
 
@@ -80,7 +82,7 @@ type ChromiumCleaner struct {
  *							C o n s t r u c t o r s
  *-----------------------------------------------------------------*/
 
-func NewChromiumCleaner(profile string, smode cmn.SizeMode, logger ...cmn.ILogger) *ChromiumCleaner {
+func NewChromiumCleaner(profile string, smode cmn.SizeMode, dry bool, logger ...cmn.ILogger) *ChromiumCleaner {
 	const cName = "ChromiumCleaner"
 	var logCtx cmn.ILogger
 	if len(logger) == 0 {
@@ -97,6 +99,7 @@ func NewChromiumCleaner(profile string, smode cmn.SizeMode, logger ...cmn.ILogge
 		filepath.Join(ChromiumDataDir, profile),
 		0,
 		smode,
+		dry,
 		logCtx,
 	}
 }
@@ -111,7 +114,7 @@ func (c *ChromiumCleaner) String() string {
 	c.logx.Print("Cleaned ", cmn.AddThousands(c.cleanedSize, ','))
 	c.logx.Print("Cleaned ", cmn.ByteCountSI(c.cleanedSize))
 	c.logx.Print("Cleaned ", cmn.ByteCountIEC(c.cleanedSize))
-	return fmt.Sprintf("%sCleaner %q cleaned %s", c.Class, c.ProfileName, reportedSize)
+	return fmt.Sprintf("%sCleaner %q cleaned %s aka %q", c.Class, c.ProfileName, reportedSize, CODENAME)
 }
 
 func (c *ChromiumCleaner) Name() browsers.Browser {
@@ -123,7 +126,7 @@ func (c *ChromiumCleaner) Name() browsers.Browser {
 // now we simply go through the top level with a list of exceptions
 // Example: clearProfile("Profile 1")
 func (c *ChromiumCleaner) ClearProfile(doCache, doProfile bool) (error, int) {
-	fmt.Printf("Clearing profile %q\n", c.ProfileName)
+	fmt.Printf("Clearing profile %q (Dry-run: %t)\n", c.ProfileName, c.doDryRun)
 
 	c.cleanedSize = 0
 	if len(c.ProfileName) == 0 {
@@ -167,10 +170,45 @@ func (c *ChromiumCleaner) Tell() bool {
 	if cacheExists {
 		sizeC, _ = cmn.GetDirectorySize(ChromiumCachesDir)
 	}
-	fmt.Println("Chromium Directories:")
+	fmt.Println("❋✦ Chromium Directories:")
 	fmt.Printf("\tData : %5t %s %s\n", dataExists, ChromiumDataDir, cmn.ReportByteCount(sizeD, c.sizeMode))
 	fmt.Printf("\tCache: %5t %s %s\n", cacheExists, ChromiumCachesDir, cmn.ReportByteCount(sizeC, c.sizeMode))
 	return dataExists && cacheExists
+}
+
+// FindProfileNames() in Chromium we scan the top-level directories in the
+// user's Chromium data/config dir and look for specific files that identify
+// it as a browser's user profile.
+func (c *ChromiumCleaner) FindProfileNames() ([]string, error) {
+	names := make([]string, 0)
+
+	ChromiumDataDir, _ := GetChromiumDirs()
+	if dataExists := cmn.IsDirectory(ChromiumDataDir); !dataExists {
+		return names, browsers.ErrNoProfilesFound
+	}
+
+	dirRead, err := os.Open(ChromiumDataDir)
+	if err != nil {
+		return names, err
+	}
+	// we only need to examine the top-level Chromium data directory
+	dirFiles, err := dirRead.Readdir(0)
+	defer dirRead.Close()
+
+	if err != nil {
+		return names, err
+	}
+
+	for _, fileHere := range dirFiles {
+		if fileHere.IsDir() {
+			if IdentifyProfileData(fileHere.Name()) {
+				names = append(names, fileHere.Name())
+			}
+		}
+	}
+
+	// Step 4: close directory and return the sum.
+	return names, nil
 }
 
 // Browser data for ALL profiles. A user account has ONE browser AppDataRoot,
@@ -214,19 +252,28 @@ func (c *ChromiumCleaner) clearCache() error {
 		return cmn.ErrNotBrowserCache
 	}
 
+	dry := cmn.NewDryRunner()
+	if !c.doDryRun {
+		dry.Disable()
+	}
+
 	// 'Cache' 'Code Cache' and sometimes 'Storage'
-	if err := os.RemoveAll(c.CacheRoot); err != nil {
+	if err := dry.RemoveAll(c.CacheRoot); err != nil {
 		return cmn.WrapError(err, 41, "Could not remove cache dir %q", c.CacheRoot)
 	}
 
 	if RecreateCacheDir {
-		if err := os.Mkdir(c.CacheRoot, PERMS); err != nil {
+		if err := dry.MkDir(c.CacheRoot, PERMS); err != nil {
 			c.logx.Printf("Could not recreate CACHE %s", c.CacheRoot)
 		}
 	}
 
 	c.cleanedSize += cacheSize
-	fmt.Printf("\tDeleted %s bytes from cache\n", cmn.ReportByteCount(cacheSize, c.sizeMode))
+	if !c.doDryRun {
+		fmt.Printf("\tDeleted %s bytes from cache\n", cmn.ReportByteCount(cacheSize, c.sizeMode))
+	} else {
+		fmt.Printf("\tWOULD have deleted %s bytes from cache\n", cmn.ReportByteCount(cacheSize, c.sizeMode))
+	}
 	c.logx.Print("clearCache DONE")
 	return nil
 }
@@ -243,7 +290,7 @@ func (c *ChromiumCleaner) eraseProfile() error {
 
 	// (b) we are going to clean the profile's top level
 	var filter cmn.IDirCleaner
-	filter = cmn.NewDirCleaner(c.ProfileRoot, c.sizeMode)
+	filter = cmn.NewDirCleaner(c.ProfileRoot, c.sizeMode, c.doDryRun)
 
 	// (c) except these important profile items
 	err := filter.CleanUp(ProfileExceptions)
@@ -253,7 +300,11 @@ func (c *ChromiumCleaner) eraseProfile() error {
 	}
 
 	c.cleanedSize += filter.CleanedSize()
-	fmt.Printf("\t...Erased %s bytes\n", cmn.ReportByteCount(c.cleanedSize, c.sizeMode))
+	if !c.doDryRun {
+		fmt.Printf("\t...Erased %s bytes\n", cmn.ReportByteCount(c.cleanedSize, c.sizeMode))
+	} else {
+		fmt.Println("\t...Be happy! we didn't erase anything!")
+	}
 	return nil
 }
 
@@ -289,6 +340,11 @@ func (c *ChromiumCleaner) clearExtensions() error {
 // Removes all files matching a Pattern at Dir.
 // Example: removeWithPattern("/home/lordofscripts/.cache", "*.log")
 func (c *ChromiumCleaner) removeWithPatterns(dir string, patterns []string) error {
+	dry := cmn.NewDryRunner()
+	if !c.doDryRun {
+		dry.Disable()
+	}
+
 	for _, pattern := range patterns {
 		glob := dir + string(os.PathSeparator) + pattern
 		files, err := filepath.Glob(glob)
@@ -304,7 +360,7 @@ func (c *ChromiumCleaner) removeWithPatterns(dir string, patterns []string) erro
 				fileSize = finfo.Size()
 			}
 			// remove file or empty directory
-			if err := os.Remove(fname); err != nil {
+			if err := dry.Remove(fname); err != nil {
 				return err
 			}
 			c.cleanedSize += fileSize

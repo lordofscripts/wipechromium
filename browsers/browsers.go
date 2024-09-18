@@ -7,6 +7,7 @@
 package browsers
 
 import (
+	"errors"
 	"log"
 )
 
@@ -16,6 +17,17 @@ import (
 
 const (
 	ChromiumBrowser Browser = iota
+	FirefoxBrowser
+)
+
+var (
+	SupportedBrowsers []Browser = []Browser{
+		ChromiumBrowser,
+		FirefoxBrowser,
+	}
+
+	ErrNoProfilesFound  error = errors.New("Could not find any user profiles.")
+	ErrInvalidOperation error = errors.New("Invalid operation")
 )
 
 /* ----------------------------------------------------------------
@@ -36,6 +48,9 @@ type Browser uint
 type IBrowsers interface {
 	Name() Browser
 	String() string
+
+	// Browser-specific profile name enumerator
+	FindProfileNames() ([]string, error)
 
 	// Clears a user profile and/or cache.
 	// Returns: error (or nil) and if error, an error code
@@ -69,6 +84,9 @@ func (b Browser) String() string {
 	switch b {
 	case ChromiumBrowser:
 		id = "Chromium"
+		break
+	case FirefoxBrowser:
+		id = "Firefox"
 		break
 	default:
 		log.Print("Unknown browser")
