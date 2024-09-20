@@ -12,7 +12,8 @@ import (
 	"path/filepath"
 	"slices" // GO v1.18
 
-	"github.com/blang/vfs"
+	"github.com/lordofscripts/vfs"
+	"github.com/lordofscripts/vfs/bucketfs"
 )
 
 /* ----------------------------------------------------------------
@@ -34,6 +35,7 @@ type DirCleanerVFS struct {
 	cleanedSize int64
 	removedQty  int
 	skippedQty  int
+	sizeMode    SizeMode
 	logx        ILogger
 	vfs         vfs.Filesystem
 }
@@ -42,23 +44,38 @@ type DirCleanerVFS struct {
  *							C o n s t r u c t o r s
  *-----------------------------------------------------------------*/
 
-func NewDirCleanerVFS(fs vfs.Filesystem, root string, logger ...ILogger) *DirCleanerVFS {
-	const cName = "DirCleaner"
+// NewDirCleanerVFS creates a new (recursive) directory cleaner instance with
+// the selected Virtual File System instance.
+func NewDirCleanerVFS(fs vfs.Filesystem, root string, sizing SizeMode, logger ...ILogger) *DirCleanerVFS {
+	const cName = "DirCleanerVFS"
 	var logCtx ILogger
 	if len(logger) == 0 {
 		logCtx = NewConditionalLogger(false, cName)
 	} else {
 		logCtx = logger[0].InheritAs(cName)
 	}
-	return &DirCleanerVFS{root, 0, 0, 0, logCtx, fs}
+	return &DirCleanerVFS{root, 0, 0, 0, sizing, logCtx, fs}
+}
+
+// NewDirCleanerDryVFS creates a new (recursive) directory cleaner instance with
+// the Bit-Bucket Virtual File System in a mode that allows us to do a Dry Run.
+// Note: This is equivalent to the other ctor. but creates the bucketfs internally
+// before calling the default ctor.
+func NewDirCleanerDryVFS(root string, sizing SizeMode, logger ...ILogger) *DirCleanerVFS {
+	fs := bucketfs.Create()
+	return NewDirCleanerVFS(fs, root, sizing, logger...)
 }
 
 /* ----------------------------------------------------------------
  *							M e t h o d s
  *-----------------------------------------------------------------*/
 
+// Stringer interface
 func (d *DirCleanerVFS) String() string {
-	return fmt.Sprintf("DirCleaner %q del:%d skip:%d size:%d", d.Root, d.removedQty, d.skippedQty, d.cleanedSize)
+	return fmt.Sprintf("DirCleaner %q del:%d skip:%d size:%s", d.Root,
+		d.removedQty,
+		d.skippedQty,
+		ReportByteCount(d.cleanedSize, d.sizeMode))
 }
 
 func (d *DirCleanerVFS) CleanUp(exceptions []string) error {

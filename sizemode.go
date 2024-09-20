@@ -16,7 +16,7 @@ import (
 
 const (
 	SizeModeStd SizeMode = iota // full numeric size
-	SizeModeSI                  // Sistema Internacional: 1KB = 1000
+	SizeModeSI                  // Sistema Internacional: 1K = 1000
 	SizeModeIEC                 // Binary System: 1KB = 1024
 )
 

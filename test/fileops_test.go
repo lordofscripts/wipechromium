@@ -12,8 +12,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/blang/vfs"
-	"github.com/blang/vfs/memfs"
+	"github.com/lordofscripts/vfs"
+	"github.com/lordofscripts/vfs/memfs"
 
 	cmn "github.com/lordofscripts/wipechromium"
 )

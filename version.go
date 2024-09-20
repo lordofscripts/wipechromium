@@ -38,7 +38,7 @@ const (
 )
 
 // NOTE: Change these values accordingly
-var Version string = version{NAME, "0.4.0", statusReleased, 0}.String()
+var Version string = version{NAME, "0.4.1", statusReleased, 0}.String()
 
 /* ----------------------------------------------------------------
  *							T y p e s

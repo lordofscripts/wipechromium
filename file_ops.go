@@ -14,7 +14,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/blang/vfs"
+	"github.com/lordofscripts/vfs"
 )
 
 /* ----------------------------------------------------------------

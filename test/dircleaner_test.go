@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/blang/vfs"
-	"github.com/blang/vfs/memfs"
+	"github.com/lordofscripts/vfs"
+	"github.com/lordofscripts/vfs/memfs"
 
 	"github.com/lordofscripts/wipechromium"
 )
@@ -155,7 +155,7 @@ func Test_DirCleanerCache(t *testing.T) {
 		showVFS(mfs, CacheDir, false)
 	}
 
-	cleaner := wipechromium.NewDirCleanerVFS(mfs, CacheDir, logx)
+	cleaner := wipechromium.NewDirCleanerVFS(mfs, CacheDir, wipechromium.SizeModeSI, logx)
 	if err := cleaner.CleanUp(ExceptionsCache); err == nil {
 		fmt.Printf("Cache cleaned: %d\n%s\n", cleaner.CleanedSize(), cleaner)
 		if count := tallyTree(mfs, CacheDir); count != -1 && count < totalObjects {
@@ -182,7 +182,7 @@ func Test_DirCleanerData(t *testing.T) {
 		showVFS(mfs, DataDir, false)
 	}
 
-	cleaner := wipechromium.NewDirCleanerVFS(mfs, DataDir, logx)
+	cleaner := wipechromium.NewDirCleanerVFS(mfs, DataDir, wipechromium.SizeModeSI, logx)
 	if err := cleaner.CleanUp(ExceptionsData); err == nil {
 		fmt.Printf("Data cleaned: %d\n%s\n", cleaner.CleanedSize(), cleaner)
 		if count := tallyTree(mfs, DataDir); count != -1 && count < totalObjects {

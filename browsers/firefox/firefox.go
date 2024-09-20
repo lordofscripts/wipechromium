@@ -333,7 +333,11 @@ func (c *FirefoxCleaner) eraseProfile() error {
 	// (b) we are going to clean the profile's top level
 	fmt.Printf("%s DirCleanerRoot %s\n", cmn.ThisLocation(1), c.ProfileRoot)
 	var filter cmn.IDirCleaner
-	filter = cmn.NewDirCleaner(c.ProfileRoot, c.sizeMode, c.doDryRun)
+	if !c.doDryRun {
+		filter = cmn.NewDirCleaner(c.ProfileRoot, c.sizeMode, false)
+	} else {
+		filter = cmn.NewDirCleanerDryVFS(c.ProfileRoot, c.sizeMode, c.logx)
+	}
 
 	// (c) except these important profile items
 	err := filter.CleanUp(FirefoxProfileExceptions)
